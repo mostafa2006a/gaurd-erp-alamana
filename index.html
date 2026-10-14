@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <link rel="icon" type="image/png" href="logo.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>مؤسسة الأمانة | إدارة الحراسة</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img class="brand-logo" src="logo.png" alt="الأمانة">
+        <div>
+          <div class="brand-title">مؤسسة الأمانة</div>
+          <div class="brand-subtitle">إدارة الحراسة والحسابات</div>
+        </div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="sidebar-footer">
+        <div class="user-box" id="userBox"></div>
+        <div class="sync-badge" id="syncBadge"></div>
+        <div class="backup-badge" id="backupBadge">لم يتم إنشاء نسخة بعد</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="menuBtn" class="icon-btn" aria-label="القائمة">☰</button>
+        <div class="page-context">
+          <div id="pageTitle" class="page-title">لوحة التحكم</div>
+          <div id="pageSubtitle" class="page-subtitle">إدارة مايفين وايوان من مكان واحد</div>
+        </div>
+        <div class="top-actions">
+          <select id="companyFilter" class="select compact"></select>
+          <button class="btn primary" id="quickBackup">نسخة احتياطية</button>
+        </div>
+      </header>
+
+      <section id="content" class="content"></section>
+    </main>
+  </div>
+
+  <template id="dashboardTemplate">
+    <div class="grid cards-4">
+      <div class="stat-card"><div class="stat-label">رصيد مايفين</div><div class="stat-value" id="statMavenCash">0 ج</div><div class="stat-note">آخر رصيد محسوب</div></div>
+      <div class="stat-card"><div class="stat-label">رصيد ايوان</div><div class="stat-value" id="statEwanCash">0 ج</div><div class="stat-note">آخر رصيد محسوب</div></div>
+      <div class="stat-card"><div class="stat-label">إجمالي المرتبات</div><div class="stat-value" id="statPayroll">0 ج</div><div class="stat-note">حسب السجلات المعتمدة</div></div>
+      <div class="stat-card"><div class="stat-label">إجمالي السلف</div><div class="stat-value" id="statLoans">0 ج</div><div class="stat-note">الرصيد القائم</div></div>
+    </div>
+
+    <div class="grid two-col section-gap">
+      <div class="panel">
+        <div class="panel-head"><h3>ملخص الشركات</h3><span class="muted">بيانات محدثة محليًا</span></div>
+        <div id="companySummary"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>تنبيهات</h3></div>
+        <div id="alerts"></div>
+      </div>
+    </div>
+
+    <div class="panel section-gap">
+      <div class="panel-head"><h3>آخر حركات الخزينة</h3><button class="btn ghost" data-route="cash">عرض الخزينة</button></div>
+      <div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>الشركة</th><th>البيان</th><th>البند</th><th>الإيراد</th><th>المنصرف</th><th>الرصيد</th></tr></thead><tbody id="recentCash"></tbody></table></div>
+    </div>
+  </template>
+
+  <script src="logo.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
