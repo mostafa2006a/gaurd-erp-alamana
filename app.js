@@ -27,7 +27,7 @@ const DEFAULT_STATE = {
 let state = normalizeState({});
 let currentRoute = 'dashboard';
 let currentCompany = 'all';
-const sel = { att:null, pay:null, settle:null };
+const sel = { att:null, pay:null, settle:null, partner:null, profitYear:'all' };
 
 const navItems = [
   ['dashboard','⌂','لوحة التحكم'],
@@ -38,6 +38,8 @@ const navItems = [
   ['loans','↔','السلف'],
   ['cash','▤','الخزينة'],
   ['settlements','٪','التسويات'],
+  ['partners','◈','الشركاء'],
+  ['profits','▲','ملخص الأرباح'],
   ['reports','▥','التقارير'],
   ['settings','⚙','الإعدادات']
 ];
@@ -108,10 +110,10 @@ function render(){
   if(!Auth.current())return;
   if(currentRoute==='users'&&!Auth.can('users'))currentRoute='dashboard';
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.route===currentRoute));
-  const titles={users:['المستخدمون','إدارة الحسابات والصلاحيات'],dashboard:['لوحة التحكم','إدارة مايفين وايوان من مكان واحد'],companies:['الشركات','إعدادات ومعلومات كل شركة'],employees:['الموظفون','سجل موحد للموظفين وربطهم بالشركة'],attendance:['الحضور','تسجيل الحضور اليومي وحساب الأيام المستحقة'],payroll:['المرتبات','كشف المرتبات الشهري التلقائي'],loans:['السلف','سلف الموظفين والتحويلات بين الشركتين'],cash:['الخزينة','الإيرادات والمنصرف والرصيد'],settlements:['التسويات','الضريبة وصافي الربح ونصيب الشركاء'],reports:['التقارير','طباعة وتصدير التقارير'],settings:['الإعدادات','إعدادات النظام والنسخ الاحتياطي']};
+  const titles={users:['المستخدمون','إدارة الحسابات والصلاحيات'],dashboard:['لوحة التحكم','إدارة مايفين وايوان من مكان واحد'],companies:['الشركات','إعدادات ومعلومات كل شركة'],employees:['الموظفون','سجل موحد للموظفين وربطهم بالشركة'],attendance:['الحضور','تسجيل الحضور اليومي وحساب الأيام المستحقة'],payroll:['المرتبات','كشف المرتبات الشهري التلقائي'],loans:['السلف','سلف الموظفين والتحويلات بين الشركتين'],cash:['الخزينة','الإيرادات والمنصرف والرصيد'],settlements:['التسويات','الضريبة وصافي الربح ونصيب الشركاء'],partners:['الشركاء','مستحق كل شريك والمدفوع والمتبقي'],profits:['ملخص الأرباح','الإيراد والتكلفة وصافي الربح لكل شهر'],reports:['التقارير','طباعة وتصدير التقارير'],settings:['الإعدادات','إعدادات النظام والنسخ الاحتياطي']};
   document.getElementById('pageTitle').textContent=titles[currentRoute][0];document.getElementById('pageSubtitle').textContent=titles[currentRoute][1];
   const c=document.getElementById('content');
-  if(currentRoute==='users')renderUsers(c); else if(currentRoute==='dashboard')renderDashboard(c); else if(currentRoute==='companies')renderCompanies(c); else if(currentRoute==='employees')renderEmployees(c); else if(currentRoute==='attendance')renderAttendance(c); else if(currentRoute==='payroll')renderPayroll(c); else if(currentRoute==='loans')renderLoans(c); else if(currentRoute==='cash')renderCash(c); else if(currentRoute==='settlements')renderSettlements(c); else if(currentRoute==='reports')renderReports(c); else renderSettings(c);
+  if(currentRoute==='users')renderUsers(c); else if(currentRoute==='dashboard')renderDashboard(c); else if(currentRoute==='companies')renderCompanies(c); else if(currentRoute==='employees')renderEmployees(c); else if(currentRoute==='attendance')renderAttendance(c); else if(currentRoute==='payroll')renderPayroll(c); else if(currentRoute==='loans')renderLoans(c); else if(currentRoute==='cash')renderCash(c); else if(currentRoute==='settlements')renderSettlements(c); else if(currentRoute==='partners')renderPartners(c); else if(currentRoute==='profits')renderProfits(c); else if(currentRoute==='reports')renderReports(c); else renderSettings(c);
   renderUserBox();renderBackupBadge();
 }
 
@@ -131,7 +133,7 @@ function renderDashboard(c){
 }
 
 function renderCompanies(c){
- c.innerHTML=`<div class="section-toolbar"><div><h3>الشركات</h3><div class="muted">الإعدادات المالية لكل شركة</div></div><button class="btn primary" data-action="add-company">+ شركة جديدة</button></div><div class="grid cards-4">${state.companies.map(co=>`<div class="panel"><div class="panel-head"><h3>${esc(co.name)}</h3><span class="pill ${co.active?'green':'gray'}">${co.active?'نشطة':'غير نشطة'}</span></div><div class="kpi-grid" style="grid-template-columns:1fr 1fr"><div class="kpi"><div class="label">الإيراد الشهري</div><div class="value">${fmt(co.monthlyRevenue)}</div></div><div class="kpi"><div class="label">الضريبة</div><div class="value">${num(co.taxRate)}%</div></div></div><div class="muted">الشركاء: ${co.partners?.length||0}</div><div class="btn-group" style="margin-top:12px"><button class="btn small ghost" data-action="edit-company" data-id="${co.id}">تعديل</button></div></div>`).join('')}</div>`;
+ c.innerHTML=`<div class="section-toolbar"><div><h3>الشركات</h3><div class="muted">الإعدادات المالية لكل شركة</div></div><button class="btn primary" data-action="add-company">+ شركة جديدة</button></div><div class="grid cards-4">${state.companies.map(co=>`<div class="panel"><div class="panel-head"><h3>${esc(co.name)}</h3><span class="pill ${co.active?'green':'gray'}">${co.active?'نشطة':'غير نشطة'}</span></div><div class="kpi-grid" style="grid-template-columns:1fr 1fr"><div class="kpi"><div class="label">الإيراد الشهري</div><div class="value">${fmt(co.monthlyRevenue)}</div></div><div class="kpi"><div class="label">الضريبة</div><div class="value">${num(co.taxRate)}%</div></div></div><div class="muted">الشركاء: ${co.partners?.length||0}</div><div class="btn-group" style="margin-top:12px"><button class="btn small ghost" data-action="edit-company" data-id="${co.id}">تعديل</button><button class="btn small danger" data-action="delete-company" data-id="${co.id}">حذف</button></div></div>`).join('')}</div>`;
 }
 
 function renderEmployees(c){
@@ -223,8 +225,8 @@ function renderBackupBadge(){const el=document.getElementById('backupBadge');if(
 
 function openModal(title,body,onSave,opts={}){if(!opts.force&&!Auth.can('write')){showToast('صلاحيتك للعرض فقط');return}const wrap=document.createElement('div');wrap.className='modal-backdrop';wrap.innerHTML=`<div class="modal"><div class="modal-head"><h3>${title}</h3><button class="close-btn">✕</button></div><div class="modal-body">${body}</div><div class="modal-foot"><button class="btn primary" id="modalSave">حفظ</button><button class="btn ghost" id="modalCancel">إلغاء</button></div></div>`;document.body.appendChild(wrap);const close=()=>wrap.remove();wrap.querySelector('.close-btn').onclick=close;wrap.querySelector('#modalCancel').onclick=close;wrap.querySelector('#modalSave').onclick=()=>{const r=onSave(wrap);if(r)close();else if(r===false)showToast('راجع البيانات المطلوبة')}}
 
-function handleClick(e){const b=e.target.closest('[data-action]');if(!b){const rt=e.target.closest('[data-route]');if(rt){currentRoute=rt.dataset.route;render();}return;}const a=b.dataset.action;const id=b.dataset.id;if(!Auth.can('write')&&!/^(report-|export-)/.test(a)){showToast('صلاحيتك للعرض فقط');return}if(a==='add-user')return addUserModal();if(a==='edit-user')return editUserModal(id);if(a==='delete-user')return deleteUserAction(id);if(a==='add-partner-adjustment')return addPartnerAdjustment(b.dataset.company);if(a==='delete-partner-adjustment')return deletePartnerAdjustment(id);if(a==='report-slip-print')return reportPayslip('print');if(a==='report-slip-word')return reportPayslip('word');if(a==='export-payroll')return payrollOut('csv',b.dataset.month,currentCompany);if(a==='delete-cash')return deleteCash(id);if(a==='report-cash-word')return reportCash('word');
- if(a==='add-company')return addCompany();if(a==='add-revenue')return addRevenue();if(a==='add-expense')return addExpense();if(a==='edit-company')return editCompany(id);if(a==='add-employee')return addEmployee();if(a==='edit-employee')return editEmployee(id);if(a==='add-loan')return addLoan();if(a==='add-cash')return addCash();if(a==='add-transfer')return addTransfer();if(a==='save-payroll')return savePayroll(b.dataset.month);if(a==='payroll-paid')return togglePayrollPaid(b.dataset.emp,b.dataset.month);if(a==='toggle-paid'){state.settings.attendancePaid[b.dataset.status]=!state.settings.attendancePaid[b.dataset.status];audit('تعديل احتساب الحضور',{status:b.dataset.status});saveState();render();}if(a==='add-partner-payment')return addPartnerPayment(b.dataset.company);if(a==='backup')return backup();if(a==='report-payroll-print')return reportPayroll('print');if(a==='report-payroll-csv')return reportPayroll('csv');if(a==='report-payroll-word')return reportPayroll('word');if(a==='report-settle-print')return reportSettlement('print');if(a==='report-settle-csv')return reportSettlement('csv');if(a==='report-settle-word')return reportSettlement('word');if(a==='report-cash-print')return reportCash('print');if(a==='report-cash-csv')return reportCash('csv');
+function handleClick(e){const b=e.target.closest('[data-action]');if(!b){const rt=e.target.closest('[data-route]');if(rt){currentRoute=rt.dataset.route;render();}return;}const a=b.dataset.action;const id=b.dataset.id;if(!Auth.can('write')&&!/^(report-|export-)/.test(a)){showToast('صلاحيتك للعرض فقط');return}if(a==='partner-statement')return partnerStatement(b.dataset.company,b.dataset.partner);if(a==='partner-statement-print')return partnerStatementOut('print',b.dataset.company,b.dataset.partner);if(a==='partner-statement-word')return partnerStatementOut('word',b.dataset.company,b.dataset.partner);if(a==='report-partners-print')return partnersOut('print');if(a==='report-partners-csv')return partnersOut('csv');if(a==='report-profits-print')return profitsOut('print');if(a==='report-profits-csv')return profitsOut('csv');if(a==='report-profits-word')return profitsOut('word');if(a==='add-user')return addUserModal();if(a==='edit-user')return editUserModal(id);if(a==='delete-user')return deleteUserAction(id);if(a==='add-partner-adjustment')return addPartnerAdjustment(b.dataset.company);if(a==='delete-partner-adjustment')return deletePartnerAdjustment(id);if(a==='report-slip-print')return reportPayslip('print');if(a==='report-slip-word')return reportPayslip('word');if(a==='export-payroll')return payrollOut('csv',b.dataset.month,currentCompany);if(a==='delete-cash')return deleteCash(id);if(a==='report-cash-word')return reportCash('word');
+ if(a==='add-company')return addCompany();if(a==='delete-company')return deleteCompany(id);if(a==='add-revenue')return addRevenue();if(a==='add-expense')return addExpense();if(a==='edit-company')return editCompany(id);if(a==='add-employee')return addEmployee();if(a==='edit-employee')return editEmployee(id);if(a==='add-loan')return addLoan();if(a==='add-cash')return addCash();if(a==='add-transfer')return addTransfer();if(a==='save-payroll')return savePayroll(b.dataset.month);if(a==='payroll-paid')return togglePayrollPaid(b.dataset.emp,b.dataset.month);if(a==='toggle-paid'){state.settings.attendancePaid[b.dataset.status]=!state.settings.attendancePaid[b.dataset.status];audit('تعديل احتساب الحضور',{status:b.dataset.status});saveState();render();}if(a==='add-partner-payment')return addPartnerPayment(b.dataset.company);if(a==='backup')return backup();if(a==='report-payroll-print')return reportPayroll('print');if(a==='report-payroll-csv')return reportPayroll('csv');if(a==='report-payroll-word')return reportPayroll('word');if(a==='report-settle-print')return reportSettlement('print');if(a==='report-settle-csv')return reportSettlement('csv');if(a==='report-settle-word')return reportSettlement('word');if(a==='report-cash-print')return reportCash('print');if(a==='report-cash-csv')return reportCash('csv');
 }
 
 document.addEventListener('change',e=>{if(e.target.matches('[data-action="set-attendance"]')){if(!Auth.can('write')){showToast('صلاحيتك للعرض فقط');render();return}const mk=e.target.dataset.month,eid=e.target.dataset.emp,day=e.target.dataset.day;state.attendance[mk]??={};state.attendance[mk][eid]??={};if(e.target.value)state.attendance[mk][eid][day]=e.target.value;else delete state.attendance[mk][eid][day];saveState();const pill=e.target.closest('tr')?.querySelector('.pill');if(pill)pill.textContent=countPaid(state.attendance[mk][eid]);showToast('تم حفظ الحضور')}})
@@ -281,6 +283,148 @@ function csvCell(v){const s=String(v??'');return `"${s.replace(/"/g,'""')}"`}
 function printHtml(html){const w=window.open('','_blank');if(!w){alert('اسمح بالنوافذ المنبثقة لطباعة التقرير');return}w.document.write(html);w.document.close();setTimeout(()=>w.print(),300)}
 
 init();
+
+/* ===== v7: الشركاء + ملخص الأرباح ===== */
+function activeMonths(){
+  const s=new Set();const add=k=>{if(/^\d{4}-\d{2}$/.test(String(k||'')))s.add(k)};
+  Object.keys(state.attendance||{}).forEach(add);Object.keys(state.payroll||{}).forEach(add);
+  state.revenues.forEach(x=>add(x.month));state.expenses.forEach(x=>add(x.month));
+  state.partnerPayments.forEach(x=>add(x.month));state.partnerAdjustments.forEach(x=>add(x.month));
+  const cur=monthKey(currentMonth().y,currentMonth().m);
+  return [...s].filter(mk=>mk<=cur||state.revenues.some(r=>r.month===mk)).sort().filter(mk=>{
+    const [y,m]=mk.split('-').map(Number);
+    return state.companies.some(co=>{const st=calcSummary(co.id,{y,m});return st.cost>0||!st.estimated||state.partnerPayments.some(x=>x.companyId===co.id&&x.month===mk)||state.partnerAdjustments.some(x=>x.companyId===co.id&&x.month===mk)})
+  });
+}
+function monthSummary(co,mk){const [y,m]=mk.split('-').map(Number);return calcSummary(co.id,{y,m})}
+function partnerShareTotal(co,st,mk){return (co.partners||[]).reduce((t,p)=>t+partnerDue(co,p,st,mk).due,0)}
+function partnerLedger(co,p){
+  let run=0;
+  return activeMonths().map(mk=>{const st=monthSummary(co,mk);const d=partnerDue(co,p,st,mk);run+=d.rest;return {mk,profit:st.profit,estimated:st.estimated,...d,run}});
+}
+function visibleCompanies(){return state.companies.filter(co=>currentCompany==='all'||co.id===currentCompany)}
+function monthLabel(mk){const [y,m]=mk.split('-').map(Number);const n=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];return `${n[m-1]} ${y}`}
+
+function renderPartners(c){
+  const months=activeMonths();
+  const mk=sel.partner||months[months.length-1]||monthKey(currentMonth().y,currentMonth().m);sel.partner=mk;sel.settle=mk;
+  const cos=visibleCompanies();
+  c.innerHTML=`<div class="section-toolbar"><div><h3>مستحقات الشركاء</h3><div class="muted">نصيب كل شريك من صافي الربح + المبالغ الإضافية − المدفوع</div></div><div class="toolbar-right"><div class="field"><label>الشهر</label><input id="partnerMonth" type="month" value="${mk}" /></div><button class="btn ghost" data-action="report-partners-print">طباعة / PDF</button><button class="btn ghost" data-action="report-partners-csv">CSV</button></div></div>`+
+  cos.map(co=>{
+    const st=monthSummary(co,mk);const ps=co.partners||[];
+    const rows=ps.map(p=>({p,d:partnerDue(co,p,st,mk),led:partnerLedger(co,p)}));
+    const sumRate=ps.reduce((t,p)=>t+num(p.rate),0);
+    const dueTot=rows.reduce((t,r)=>t+r.d.due,0);
+    const left=st.profit-dueTot;
+    const totalRest=rows.reduce((t,r)=>t+(r.led.length?r.led[r.led.length-1].run:0),0);
+    return `<div class="panel section-gap"><div class="panel-head"><div><h3>${esc(co.name)}</h3><div class="muted">${monthLabel(mk)} ${st.estimated?'— <span class="pill gray">إيراد تقديري</span>':''}</div></div><button class="btn small ghost" data-action="edit-company" data-id="${co.id}">إدارة الشركاء ونسبهم</button></div>
+    <div class="kpi-grid"><div class="kpi"><div class="label">صافي ربح الشهر</div><div class="value">${fmt(st.profit)}</div></div><div class="kpi"><div class="label">مستحق الشركاء هذا الشهر (${num(sumRate)}%)</div><div class="value">${fmt(dueTot)}</div></div><div class="kpi"><div class="label">يتبقى للمؤسسة</div><div class="value">${fmt(left)}</div></div><div class="kpi"><div class="label">إجمالي المتبقي للشركاء (كل الشهور)</div><div class="value gold">${fmt(totalRest)}</div></div></div>
+    <div class="table-wrap"><table><thead><tr><th>الشريك</th><th>النسبة</th><th>نصيبه من الربح</th><th>إضافي/خصم</th><th>المستحق</th><th>المدفوع</th><th>متبقي هذا الشهر</th><th>إجمالي متبقي له</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${esc(r.p.name)}</b></td><td>${num(r.p.rate)}%</td><td>${fmt(r.d.share)}</td><td>${fmt(r.d.adj)}</td><td>${fmt(r.d.due)}</td><td>${fmt(r.d.paid)}</td><td>${fmt(r.d.rest)}</td><td><b>${fmt(r.led.length?r.led[r.led.length-1].run:0)}</b></td><td><div class="btn-group"><button class="btn small ghost" data-action="partner-statement" data-company="${co.id}" data-partner="${r.p.id}">كشف حساب</button></div></td></tr>`).join('')||`<tr><td colspan="9" class="empty">لا يوجد شركاء. اضغط «إدارة الشركاء ونسبهم» لإضافتهم.</td></tr>`}</tbody></table></div>
+    <div class="btn-group" style="margin-top:12px"><button class="btn success" data-action="add-partner-payment" data-company="${co.id}">تسجيل دفع لشريك</button><button class="btn ghost" data-action="add-partner-adjustment" data-company="${co.id}">إضافة/خصم مبلغ لشريك</button></div></div>`}).join('')||'<div class="panel empty">لا توجد شركات.</div>';
+  const mi=document.getElementById('partnerMonth');if(mi)mi.addEventListener('change',e=>{if(e.target.value){sel.partner=e.target.value;sel.settle=e.target.value;render()}});
+}
+
+function statementHtml(co,p){
+  const led=partnerLedger(co,p);const t=k=>led.reduce((a,r)=>a+num(r[k]),0);
+  return `<h3>${esc(p.name)} — ${esc(co.name)} (${num(p.rate)}%)</h3><table><thead><tr><th>الشهر</th><th>صافي الربح</th><th>نصيبه</th><th>إضافي/خصم</th><th>المستحق</th><th>المدفوع</th><th>المتبقي</th><th>الرصيد التراكمي</th></tr></thead><tbody>${led.map(r=>`<tr><td>${r.mk}${r.estimated?' (تقديري)':''}</td><td>${rn(r.profit)}</td><td>${rn(r.share)}</td><td>${rn(r.adj)}</td><td>${rn(r.due)}</td><td>${rn(r.paid)}</td><td>${rn(r.rest)}</td><td>${rn(r.run)}</td></tr>`).join('')||'<tr><td colspan="8">لا توجد شهور</td></tr>'}</tbody><tfoot><tr><td>الإجمالي</td><td>${rn(t('profit'))}</td><td>${rn(t('share'))}</td><td>${rn(t('adj'))}</td><td>${rn(t('due'))}</td><td>${rn(t('paid'))}</td><td>${rn(t('rest'))}</td><td>${rn(led.length?led[led.length-1].run:0)}</td></tr></tfoot></table>`;
+}
+function partnerStatement(companyId,partnerId){
+  const co=state.companies.find(x=>x.id===companyId);const p=(co&&co.partners||[]).find(x=>x.id===partnerId);if(!p)return;
+  const wrap=document.createElement('div');wrap.className='modal-backdrop';
+  wrap.innerHTML=`<div class="modal" style="width:min(980px,100%)"><div class="modal-head"><h3>كشف حساب شريك</h3><button class="close-btn">✕</button></div><div class="modal-body"><div class="table-wrap statement">${statementHtml(co,p)}</div></div><div class="modal-foot"><button class="btn primary" data-action="partner-statement-print">طباعة / PDF</button><button class="btn ghost" data-action="partner-statement-word">Word</button><button class="btn ghost" id="modalCancel">إغلاق</button></div></div>`;
+  document.body.appendChild(wrap);const close=()=>wrap.remove();
+  wrap.querySelector('.close-btn').onclick=close;wrap.querySelector('#modalCancel').onclick=close;
+  wrap.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>partnerStatementOut(b.dataset.action==='partner-statement-print'?'print':'word',companyId,partnerId));
+}
+function partnerStatementOut(mode,companyId,partnerId){
+  const co=state.companies.find(x=>x.id===companyId);const p=(co&&co.partners||[]).find(x=>x.id===partnerId);if(!p)return;
+  const html=reportShell(`كشف حساب الشريك ${p.name}`,statementHtml(co,p));
+  if(mode==='print')return printHtml(html);return download(`كشف_حساب_${p.name}.doc`,html,'application/msword');
+}
+function partnersOut(mode){
+  const mk=sel.partner||monthKey(currentMonth().y,currentMonth().m);
+  const rows=visibleCompanies().flatMap(co=>{const st=monthSummary(co,mk);return (co.partners||[]).map(p=>{const led=partnerLedger(co,p);return {co:co.name,name:p.name,rate:num(p.rate),...partnerDue(co,p,st,mk),total:led.length?led[led.length-1].run:0}})});
+  if(mode==='csv')return download(`مستحقات_الشركاء_${mk}.csv`,['الشركة,الشريك,النسبة %,نصيبه,إضافي/خصم,المستحق,المدفوع,متبقي الشهر,إجمالي المتبقي',...rows.map(r=>[r.co,r.name,r.rate,r.share,r.adj,r.due,r.paid,r.rest,r.total].map(csvCell).join(','))].join('\n'),'text/csv;charset=utf-8');
+  const html=reportShell(`مستحقات الشركاء ${mk}`,`<table><thead><tr><th>الشركة</th><th>الشريك</th><th>النسبة</th><th>نصيبه</th><th>إضافي/خصم</th><th>المستحق</th><th>المدفوع</th><th>متبقي الشهر</th><th>إجمالي المتبقي</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.co)}</td><td>${esc(r.name)}</td><td>${r.rate}%</td><td>${rn(r.share)}</td><td>${rn(r.adj)}</td><td>${rn(r.due)}</td><td>${rn(r.paid)}</td><td>${rn(r.rest)}</td><td>${rn(r.total)}</td></tr>`).join('')||'<tr><td colspan="9">لا يوجد شركاء</td></tr>'}</tbody></table>`);
+  return printHtml(html);
+}
+
+function profitData(co){
+  return activeMonths().map(mk=>{const st=monthSummary(co,mk);const partners=partnerShareTotal(co,st,mk);return {mk,...st,partners,owner:st.profit-partners}});
+}
+function sumRows(list){const k=['revenue','tax','payroll','expenses','cost','profit','partners','owner'];const o={};k.forEach(x=>o[x]=list.reduce((t,r)=>t+num(r[x]),0));return o}
+function profitTables(){
+  const cos=visibleCompanies();const per=cos.map(co=>({co,rows:profitData(co)}));
+  const yr=sel.profitYear;const keep=r=>yr==='all'||r.mk.startsWith(yr+'-');
+  per.forEach(x=>x.rows=x.rows.filter(keep));
+  const months=[...new Set(per.flatMap(x=>x.rows.map(r=>r.mk)))].sort();
+  const total=months.map(mk=>({mk,...sumRows(per.flatMap(x=>x.rows.filter(r=>r.mk===mk))),estimated:per.some(x=>x.rows.some(r=>r.mk===mk&&r.estimated))}));
+  return {per,total,months};
+}
+function renderProfits(c){
+  const years=[...new Set(activeMonths().map(m=>m.slice(0,4)))];
+  if(sel.profitYear!=='all'&&!years.includes(sel.profitYear))sel.profitYear='all';
+  const {per,total}=profitTables();
+  const all=sumRows(total);const best=total.slice().sort((a,b)=>b.profit-a.profit)[0];
+  const avg=total.length?all.profit/total.length:0;const maxP=Math.max(1,...total.map(r=>Math.abs(r.profit)));
+  const head=`<thead><tr><th>الشهر</th><th>الإيراد</th><th>الضريبة</th><th>المرتبات</th><th>المصاريف</th><th>صافي الربح</th><th>نصيب الشركاء</th><th>للمؤسسة</th></tr></thead>`;
+  const body=rows=>rows.map(r=>`<tr><td><b>${monthLabel(r.mk)}</b>${r.estimated?' <span class="pill gray">تقديري</span>':''}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.tax)}</td><td>${fmt(r.payroll)}</td><td>${fmt(r.expenses)}</td><td class="${r.profit<0?'neg':'pos'}"><b>${fmt(r.profit)}</b></td><td>${fmt(r.partners)}</td><td>${fmt(r.owner)}</td></tr>`).join('')||'<tr><td colspan="8" class="empty">لا توجد بيانات بعد.</td></tr>';
+  const foot=r=>`<tfoot><tr><td>الإجمالي</td><td>${fmt(r.revenue)}</td><td>${fmt(r.tax)}</td><td>${fmt(r.payroll)}</td><td>${fmt(r.expenses)}</td><td>${fmt(r.profit)}</td><td>${fmt(r.partners)}</td><td>${fmt(r.owner)}</td></tr></tfoot>`;
+  c.innerHTML=`<div class="section-toolbar"><div><h3>ملخص أرباح كل شهر</h3><div class="muted">الأشهر التقديرية تعتمد على الإيراد الشهري من إعدادات الشركة حتى يُسجَّل الإيراد الفعلي</div></div><div class="toolbar-right"><div class="field"><label>السنة</label><select id="profitYear" class="select"><option value="all">كل السنوات</option>${years.map(y=>`<option value="${y}" ${y===sel.profitYear?'selected':''}>${y}</option>`).join('')}</select></div><button class="btn ghost" data-action="report-profits-print">طباعة / PDF</button><button class="btn ghost" data-action="report-profits-word">Word</button><button class="btn ghost" data-action="report-profits-csv">CSV</button></div></div>
+  <div class="kpi-grid"><div class="kpi"><div class="label">إجمالي صافي الربح</div><div class="value gold">${fmt(all.profit)}</div></div><div class="kpi"><div class="label">متوسط الربح الشهري</div><div class="value">${fmt(avg)}</div></div><div class="kpi"><div class="label">أفضل شهر</div><div class="value">${best?monthLabel(best.mk):'—'}${best?`<small> ${fmt(best.profit)}</small>`:''}</div></div><div class="kpi"><div class="label">إجمالي نصيب الشركاء</div><div class="value">${fmt(all.partners)}</div></div></div>
+  ${per.length>1?`<div class="panel section-gap"><div class="panel-head"><h3>الإجمالي لكل الشركات</h3></div><div class="table-wrap"><table>${head}<tbody>${body(total)}</tbody>${foot(all)}</table></div><div class="bars">${total.map(r=>`<div class="bar-row"><span class="bar-m">${r.mk}</span><div class="bar-track"><div class="bar-fill ${r.profit<0?'neg':''}" style="width:${Math.round(Math.abs(r.profit)/maxP*100)}%"></div></div><span class="bar-v">${fmt(r.profit)}</span></div>`).join('')}</div></div>`:''}
+  ${per.map(x=>`<div class="panel section-gap"><div class="panel-head"><h3>${esc(x.co.name)}</h3></div><div class="table-wrap"><table>${head}<tbody>${body(x.rows)}</tbody>${foot(sumRows(x.rows))}</table></div></div>`).join('')}`;
+  document.getElementById('profitYear').addEventListener('change',e=>{sel.profitYear=e.target.value;render()});
+}
+function profitsOut(mode){
+  const {per,total}=profitTables();const cols=['الشهر','الإيراد','الضريبة','المرتبات','المصاريف','صافي الربح','نصيب الشركاء','للمؤسسة'];
+  const line=r=>[r.mk+(r.estimated?' (تقديري)':''),r.revenue,r.tax,r.payroll,r.expenses,r.profit,r.partners,r.owner];
+  const blocks=[...(per.length>1?[{name:'الإجمالي لكل الشركات',rows:total}]:[]),...per.map(x=>({name:x.co.name,rows:x.rows}))];
+  if(mode==='csv')return download(`ملخص_الأرباح.csv`,blocks.flatMap(b=>[b.name,cols.map(csvCell).join(','),...b.rows.map(r=>line(r).map(csvCell).join(',')),[ 'الإجمالي',...(()=>{const s=sumRows(b.rows);return [s.revenue,s.tax,s.payroll,s.expenses,s.profit,s.partners,s.owner]})()].map(csvCell).join(','),'']).join('\n'),'text/csv;charset=utf-8');
+  const html=reportShell('ملخص الأرباح الشهري',blocks.map(b=>{const s=sumRows(b.rows);return `<h3>${esc(b.name)}</h3><table><thead><tr>${cols.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r=>`<tr>${line(r).map((v,i)=>`<td>${i?rn(v):esc(v)}</td>`).join('')}</tr>`).join('')}</tbody><tfoot><tr><td>الإجمالي</td><td>${rn(s.revenue)}</td><td>${rn(s.tax)}</td><td>${rn(s.payroll)}</td><td>${rn(s.expenses)}</td><td>${rn(s.profit)}</td><td>${rn(s.partners)}</td><td>${rn(s.owner)}</td></tr></tfoot></table>`}).join(''));
+  if(mode==='print')return printHtml(html);return download('ملخص_الأرباح.doc',html,'application/msword');
+}
+
+
+/* ===== v7: حذف شركة ===== */
+function companyDataCounts(id){
+  const empIds=new Set(state.employees.filter(e=>e.companyId===id).map(e=>e.id));
+  const tr=state.transfers.filter(t=>t.fromCompanyId===id||t.toCompanyId===id);
+  return {employees:empIds.size,loans:state.loans.filter(x=>x.companyId===id).length,cash:state.cash.filter(x=>x.companyId===id).length,revenues:state.revenues.filter(x=>x.companyId===id).length,expenses:state.expenses.filter(x=>x.companyId===id).length,transfers:tr.length,partnerPayments:state.partnerPayments.filter(x=>x.companyId===id).length,partnerAdjustments:state.partnerAdjustments.filter(x=>x.companyId===id).length,empIds,tr};
+}
+function deleteCompany(id){
+  if(!Auth.can('write')){showToast('صلاحيتك للعرض فقط');return}
+  const co=state.companies.find(x=>x.id===id);if(!co)return;
+  if(state.companies.length<=1)return alert('لا يمكن حذف الشركة الوحيدة. أضف شركة أخرى أولًا.');
+  const n=companyDataCounts(id);
+  const total=n.employees+n.loans+n.cash+n.revenues+n.expenses+n.transfers+n.partnerPayments+n.partnerAdjustments;
+  const list=[['موظفون',n.employees],['سلف',n.loans],['حركات خزينة',n.cash],['إيرادات',n.revenues],['مصروفات',n.expenses],['تحويلات',n.transfers],['دفعات شركاء',n.partnerPayments],['مبالغ إضافية للشركاء',n.partnerAdjustments]].filter(x=>x[1]>0);
+  const body=total?`<p><b>تنبيه:</b> حذف «${esc(co.name)}» سيحذف معها نهائيًا:</p><ul>${list.map(x=>`<li>${x[0]}: ${x[1]}</li>`).join('')}</ul><p class="muted">كذلك الحضور والمرتبات الخاصة بموظفيها. ننصح بأخذ نسخة احتياطية قبل الحذف.</p><div class="field"><label>اكتب اسم الشركة «${esc(co.name)}» للتأكيد</label><input id="fConfirm" autocomplete="off" /></div>`:`<p>سيتم حذف الشركة «${esc(co.name)}». لا توجد بيانات مرتبطة بها.</p>`;
+  openModal('حذف شركة',body,w=>{
+    if(total){const v=(w.querySelector('#fConfirm').value||'').trim();if(v!==co.name.trim()){showToast('اسم الشركة غير مطابق');return false}}
+    const empIds=n.empIds;
+    // تحويلات: احذف القيد المقابل في الشركة الأخرى
+    const trIds=new Set(n.tr.map(t=>t.id));const others=new Set();
+    n.tr.forEach(t=>{[t.fromCompanyId,t.toCompanyId].forEach(c=>{if(c!==id)others.add(c)})});
+    state.cash=state.cash.filter(x=>x.companyId!==id&&!trIds.has(x.ref));
+    state.transfers=state.transfers.filter(t=>!trIds.has(t.id));
+    state.loans=state.loans.filter(x=>x.companyId!==id&&!empIds.has(x.employeeId));
+    state.revenues=state.revenues.filter(x=>x.companyId!==id);
+    state.expenses=state.expenses.filter(x=>x.companyId!==id);
+    state.partnerPayments=state.partnerPayments.filter(x=>x.companyId!==id);
+    state.partnerAdjustments=state.partnerAdjustments.filter(x=>x.companyId!==id);
+    Object.keys(state.attendance||{}).forEach(mk=>{empIds.forEach(e=>{delete state.attendance[mk][e]})});
+    Object.keys(state.payroll||{}).forEach(mk=>{const it=(state.payroll[mk]||{}).items;if(it)empIds.forEach(e=>{delete it[e]})});
+    state.employees=state.employees.filter(e=>e.companyId!==id);
+    state.companies=state.companies.filter(x=>x.id!==id);
+    others.forEach(c=>{if(state.companies.some(x=>x.id===c))recalcCashBalances(c)});
+    if(currentCompany===id)currentCompany='all';
+    audit('حذف شركة',{companyId:id,name:co.name,employees:n.employees,cash:n.cash});
+    saveState();refreshCompanyFilter();render();showToast('تم حذف الشركة');return true;
+  });
+  setTimeout(()=>{const b=document.querySelector('.modal-backdrop #modalSave');if(b){b.textContent='حذف نهائي';b.classList.remove('primary');b.classList.add('danger')}},0);
+}
+
 Auth.init({login:async(u,info)=>{const resumed=Boolean(info&&info.resumed);buildNav();refreshCompanyFilter();if(!resumed)currentRoute='dashboard';const ok=await reloadFromServer();if(ok&&!resumed){audit('تسجيل دخول');saveState()}startPolling()},logout:()=>{stopPolling();state=normalizeState({});serverRev=0;dirty=false;lastSnap='';pendingAudit=[];document.getElementById('content').innerHTML='';document.getElementById('userBox').innerHTML='';document.getElementById('nav').innerHTML='';setSync('','')}});
 
 /* ===== المستخدمون وكلمة المرور ===== */
